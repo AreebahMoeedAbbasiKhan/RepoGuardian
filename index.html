@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="RepoGuardian Studio - a local-first open-source pull request and security auditor.">
+  <title>RepoGuardian Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#101315',
+            paper: '#f4f5ef',
+            panel: '#171b1d',
+            line: '#303638',
+            lime: '#b7f36b',
+            coral: '#ff765e',
+            sky: '#80d8ff'
+          },
+          fontFamily: {
+            display: ['Space Grotesk', 'ui-sans-serif', 'sans-serif'],
+            mono: ['IBM Plex Mono', 'ui-monospace', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root { color-scheme: dark; }
+    body { background: #101315; color: #f4f5ef; }
+    .grid-texture { background-image: linear-gradient(rgba(128, 216, 255, .04) 1px, transparent 1px), linear-gradient(90deg, rgba(128, 216, 255, .04) 1px, transparent 1px); background-size: 28px 28px; }
+    .scanline { background: linear-gradient(90deg, transparent, rgba(183, 243, 107, .55), transparent); background-size: 200% 100%; animation: scan 3s linear infinite; }
+    @keyframes scan { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .rise { animation: rise .5s ease both; }
+    textarea { resize: vertical; }
+    .tab-active { color: #b7f36b; border-color: #b7f36b; background: rgba(183, 243, 107, .08); }
+    .status-dot { box-shadow: 0 0 0 4px rgba(183, 243, 107, .1); }
+  </style>
+</head>
+<body class="min-h-screen font-display grid-texture">
+  <div class="mx-auto max-w-[1440px] px-4 py-4 sm:px-6 lg:px-10">
+    <header class="flex flex-col gap-5 border-b border-line pb-5 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex items-center gap-3">
+        <div class="grid h-11 w-11 place-items-center border border-lime/60 bg-lime text-ink" aria-hidden="true"><i data-lucide="shield-check" class="h-6 w-6"></i></div>
+        <div>
+          <div class="flex items-center gap-2"><h1 class="text-lg font-bold tracking-tight">RepoGuardian</h1><span class="border border-line px-2 py-0.5 font-mono text-[10px] uppercase tracking-[.18em] text-lime">Studio</span></div>
+          <p class="font-mono text-[11px] uppercase tracking-[.16em] text-slate-400">Maintainer intelligence / local-first</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 text-xs">
+        <div class="flex items-center gap-2 border border-line bg-panel px-3 py-2 text-slate-300"><span class="status-dot h-2 w-2 rounded-full bg-lime"></span>workspace ready</div>
+        <div class="border border-line bg-panel px-3 py-2 font-mono text-slate-400">v1.0.0 / 19 OCT 2026</div>
+        <a href="https://agentskills.io/" target="_blank" rel="noreferrer" class="flex items-center gap-2 border border-line px-3 py-2 text-slate-300 hover:border-lime hover:text-lime"><i data-lucide="external-link" class="h-3.5 w-3.5"></i>Agent Skill spec</a>
+      </div>
+    </header>
+
+    <main class="py-8">
+      <section class="mb-8 max-w-3xl rise">
+        <p class="mb-3 font-mono text-xs uppercase tracking-[.2em] text-lime">Hacktoberfest 2026 / PR review console</p>
+        <h2 class="text-4xl font-bold leading-[.98] tracking-[-.04em] sm:text-6xl">Make merge decisions<br><span class="text-slate-500">with receipts.</span></h2>
+        <p class="mt-5 max-w-xl text-sm leading-6 text-slate-400">Scan API changes, surface secret-like patterns, check dependency licenses, and ask a local model for a second pair of eyes.</p>
+      </section>
+
+      <nav class="mb-6 flex gap-2 overflow-x-auto border-b border-line" aria-label="Studio tools">
+        <button class="tab tab-active flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold" data-tab="scanner"><i data-lucide="scan-line" class="h-4 w-4"></i>PR scanner</button>
+        <button class="tab flex shrink-0 items-center gap-2 border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-slate-400 hover:text-paper" data-tab="licenses"><i data-lucide="scale" class="h-4 w-4"></i>Licenses</button>
+        <button class="tab flex shrink-0 items-center gap-2 border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-slate-400 hover:text-paper" data-tab="ai"><i data-lucide="brain-circuit" class="h-4 w-4"></i>Local AI</button>
+        <button class="tab flex shrink-0 items-center gap-2 border-b-2 border-transparent px-4 py-3 text-sm font-semibold text-slate-400 hover:text-paper" data-tab="skill"><i data-lucide="file-cog" class="h-4 w-4"></i>Skill inspector</button>
+      </nav>
+
+      <section id="scanner" class="tab-panel rise">
+        <div class="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div><p class="font-mono text-[11px] uppercase tracking-[.18em] text-slate-500">01 / visual diff + security scan</p><h3 class="mt-1 text-2xl font-semibold">Review the proposed change</h3></div>
+          <div class="flex gap-2"><button id="load-demo" class="flex items-center gap-2 border border-line px-3 py-2 text-xs font-semibold text-slate-300 hover:border-lime hover:text-lime"><i data-lucide="sparkles" class="h-4 w-4"></i>Load demo</button><button id="run-scan" class="flex items-center gap-2 bg-lime px-4 py-2 text-xs font-bold text-ink hover:bg-white"><i data-lucide="play" class="h-4 w-4"></i>Run scan</button></div>
+        </div>
+        <div class="grid gap-4 xl:grid-cols-[1.15fr_1.15fr_.9fr]">
+          <label class="border border-line bg-panel p-4"><span class="mb-3 flex items-center justify-between font-mono text-[11px] uppercase tracking-[.15em] text-slate-500"><span>base / main.py</span><span class="text-slate-600">read-only snapshot</span></span><textarea id="base-code" class="h-72 w-full border border-line bg-ink p-4 font-mono text-xs leading-6 text-slate-300 outline-none focus:border-sky" spellcheck="false">def create_user(name: str, email: str) -> User:
+    return User(name=name, email=email)
+
+
+def delete_user(user_id: int) -> None:
+    database.remove(user_id)</textarea></label>
+          <label class="border border-line bg-panel p-4"><span class="mb-3 flex items-center justify-between font-mono text-[11px] uppercase tracking-[.15em] text-slate-500"><span>proposed / main.py</span><span class="text-lime">working tree</span></span><textarea id="proposed-code" class="h-72 w-full border border-line bg-ink p-4 font-mono text-xs leading-6 text-slate-300 outline-none focus:border-sky" spellcheck="false">def create_user(name: str, email: str, role: str) -> User:
+    return User(name=name, email=email, role=role)
+
+
+def delete_user(user_id: int) -> None:
+    database.remove(user_id)
+
+API_KEY = "sk-live-demo-secret-1234"</textarea></label>
+          <div class="border border-line bg-panel p-4"><div class="mb-4 flex items-center justify-between"><span class="font-mono text-[11px] uppercase tracking-[.15em] text-slate-500">findings</span><span id="scan-count" class="bg-coral px-2 py-1 font-mono text-[10px] font-bold text-ink">2 detected</span></div><div id="findings" class="space-y-3"></div><div class="mt-5 border-t border-line pt-4"><div class="mb-2 flex justify-between text-xs"><span class="text-slate-500">review confidence</span><span id="confidence" class="font-mono text-lime">84%</span></div><div class="h-1.5 bg-line"><div id="confidence-bar" class="h-full bg-lime" style="width:84%"></div></div></div></div>
+        </div>
+        <div class="mt-4 flex items-center gap-2 border border-line bg-panel px-4 py-3 text-xs text-slate-400"><i data-lucide="lock-keyhole" class="h-4 w-4 text-lime"></i><span>Static checks run in your browser. Secret values are redacted from findings.</span><span class="ml-auto hidden font-mono text-[10px] uppercase text-slate-600 sm:block">no upload</span></div>
+      </section>
+
+      <section id="licenses" class="tab-panel hidden rise">
+        <div class="mb-5"><p class="font-mono text-[11px] uppercase tracking-[.18em] text-slate-500">02 / dependency governance</p><h3 class="mt-1 text-2xl font-semibold">License checker</h3><p class="mt-2 max-w-xl text-sm text-slate-400">Enter a package and its declared license. RepoGuardian compares it against a permissive default policy.</p></div>
+        <div class="grid gap-4 lg:grid-cols-[.8fr_1.2fr]">
+          <div class="border border-line bg-panel p-5"><label class="mb-4 block"><span class="mb-2 block font-mono text-[11px] uppercase tracking-[.15em] text-slate-500">package name</span><input id="package-name" value="requests" class="w-full border border-line bg-ink px-3 py-3 font-mono text-sm text-paper outline-none focus:border-sky"></label><label class="mb-5 block"><span class="mb-2 block font-mono text-[11px] uppercase tracking-[.15em] text-slate-500">declared license</span><select id="package-license" class="w-full border border-line bg-ink px-3 py-3 font-mono text-sm text-paper outline-none focus:border-sky"><option>Apache-2.0</option><option>MIT</option><option>BSD-3-Clause</option><option>MPL-2.0</option><option>GPL-3.0</option><option>AGPL-3.0</option><option>UNKNOWN</option></select></label><button id="check-license" class="flex w-full items-center justify-center gap-2 bg-lime px-4 py-3 text-sm font-bold text-ink hover:bg-white"><i data-lucide="shield-check" class="h-4 w-4"></i>Check compliance</button></div>
+          <div class="border border-line bg-panel p-5"><div class="mb-4 flex items-center justify-between"><span class="font-mono text-[11px] uppercase tracking-[.15em] text-slate-500">policy result</span><span class="font-mono text-[10px] text-slate-600">default-policy.json</span></div><div id="license-result"></div><div class="mt-6 grid grid-cols-3 gap-2 text-center font-mono text-[10px] uppercase"><div class="border border-lime/30 bg-lime/5 px-2 py-3 text-lime"><strong class="block text-lg">6</strong>permitted</div><div class="border border-coral/30 bg-coral/5 px-2 py-3 text-coral"><strong class="block text-lg">6</strong>restricted</div><div class="border border-line px-2 py-3 text-slate-500"><strong class="block text-lg text-paper">1</strong>unknown</div></div></div>
+        </div>
+      </section>
+
+      <section id="ai" class="tab-panel hidden rise">
+        <div class="mb-5"><p class="font-mono text-[11px] uppercase tracking-[.18em] text-slate-500">03 / open-weight copilot</p><h3 class="mt-1 text-2xl font-semibold">Local AI summary</h3><p class="mt-2 max-w-xl text-sm text-slate-400">Use Ollama on your machine for a private maintainer summary. Demo mode keeps this panel useful offline.</p></div>
+        <div class="grid gap-4 lg:grid-cols-[.8fr_1.2fr]">
+          <div class="border border-line bg-panel p-5"><div class="mb-5 flex items-center justify-between"><span class="font-mono text-[11px] uppercase tracking-[.15em] text-slate-500">connection</span><span id="ollama-state" class="flex items-center gap-2 font-mono text-[10px] uppercase text-lime"><span class="h-2 w-2 rounded-full bg-lime"></span>demo mode</span></div><label class="mb-4 flex items-center justify-between border border-line bg-ink px-3 py-3 text-sm"><span>Use demo response</span><input id="demo-toggle" type="checkbox" checked class="h-4 w-4 accent-lime"></label><label class="mb-4 block"><span class="mb-2 block font-mono text-[11px] uppercase tracking-[.15em] text-slate-500">model</span><select id="model-select" class="w-full border border-line bg-ink px-3 py-3 font-mono text-sm outline-none focus:border-sky"><option>qwen2.5-coder</option><option>llama3.2</option></select></label><label class="mb-5 block"><span class="mb-2 block font-mono text-[11px] uppercase tracking-[.15em] text-slate-500">endpoint</span><input id="ollama-endpoint" value="http://localhost:11434/api/generate" class="w-full border border-line bg-ink px-3 py-3 font-mono text-xs text-slate-300 outline-none focus:border-sky"></label><button id="generate-summary" class="flex w-full items-center justify-center gap-2 bg-lime px-4 py-3 text-sm font-bold text-ink hover:bg-white"><i data-lucide="wand-sparkles" class="h-4 w-4"></i>Generate summary</button></div>
+          <div class="border border-line bg-panel p-5"><div class="mb-4 flex items-center gap-2"><i data-lucide="message-square-text" class="h-4 w-4 text-sky"></i><span class="font-mono text-[11px] uppercase tracking-[.15em] text-slate-500">maintainer brief</span></div><div id="ai-output" class="min-h-64 border border-line bg-ink p-5 text-sm leading-7 text-slate-300"></div></div>
+        </div>
+      </section>
+
+      <section id="skill" class="tab-panel hidden rise">
+        <div class="mb-5"><p class="font-mono text-[11px] uppercase tracking-[.18em] text-slate-500">04 / standard compliance</p><h3 class="mt-1 text-2xl font-semibold">Agent Skill inspector</h3><p class="mt-2 max-w-xl text-sm text-slate-400">A visual map of how RepoGuardian keeps instructions discoverable and implementation progressively disclosed.</p></div>
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <article class="border border-lime/40 bg-lime/5 p-5"><div class="mb-8 flex items-center justify-between"><i data-lucide="file-text" class="h-5 w-5 text-lime"></i><span class="font-mono text-[10px] text-lime">01 / entry</span></div><h4 class="font-semibold">SKILL.md</h4><p class="mt-2 text-xs leading-5 text-slate-400">name, description, version, author, workflow, and guardrails.</p><span class="mt-6 inline-block font-mono text-[10px] uppercase text-lime">valid metadata</span></article>
+          <article class="border border-line bg-panel p-5"><div class="mb-8 flex items-center justify-between"><i data-lucide="code-2" class="h-5 w-5 text-sky"></i><span class="font-mono text-[10px] text-slate-500">02 / execution</span></div><h4 class="font-semibold">scripts/</h4><p class="mt-2 text-xs leading-5 text-slate-400">AST API auditing and dependency license checks for CI workflows.</p><span class="mt-6 inline-block font-mono text-[10px] uppercase text-sky">2 analyzers</span></article>
+          <article class="border border-line bg-panel p-5"><div class="mb-8 flex items-center justify-between"><i data-lucide="book-open" class="h-5 w-5 text-coral"></i><span class="font-mono text-[10px] text-slate-500">03 / policy</span></div><h4 class="font-semibold">references/</h4><p class="mt-2 text-xs leading-5 text-slate-400">License matrix and security patterns are loaded only when needed.</p><span class="mt-6 inline-block font-mono text-[10px] uppercase text-coral">2 references</span></article>
+          <article class="border border-line bg-panel p-5"><div class="mb-8 flex items-center justify-between"><i data-lucide="monitor" class="h-5 w-5 text-slate-300"></i><span class="font-mono text-[10px] text-slate-500">04 / interface</span></div><h4 class="font-semibold">index.html</h4><p class="mt-2 text-xs leading-5 text-slate-400">A direct-open studio for maintainers who prefer a visual workflow.</p><span class="mt-6 inline-block font-mono text-[10px] uppercase text-slate-400">browser-ready</span></article>
+        </div>
+        <div class="mt-4 border border-line bg-panel p-5"><div class="mb-3 flex items-center justify-between"><span class="font-mono text-[11px] uppercase tracking-[.15em] text-slate-500">frontmatter preview</span><span class="font-mono text-[10px] text-lime">4 fields detected</span></div><pre class="overflow-x-auto border border-line bg-ink p-4 font-mono text-xs leading-6 text-slate-400"><code>---
+name: repoguardian
+description: Review open-source pull requests...
+version: 1.0.0
+author: RepoGuardian contributors
+---</code></pre></div>
+      </section>
+    </main>
+
+    <footer class="flex flex-col gap-3 border-t border-line py-6 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between"><span>RepoGuardian Studio / MIT licensed / built for Hacktoberfest 2026</span><span class="font-mono">local-first by design</span></footer>
+  </div>
+
+  <script>
+    const demoBase = `def create_user(name: str, email: str) -> User:\n    return User(name=name, email=email)\n\n\ndef delete_user(user_id: int) -> None:\n    database.remove(user_id)`;
+    const demoProposed = `def create_user(name: str, email: str, role: str) -> User:\n    return User(name=name, email=email, role=role)\n\n\ndef delete_user(user_id: int) -> None:\n    database.remove(user_id)\n\nAPI_KEY = "sk-live-demo-secret-1234"`;
+    const icons = () => window.lucide && lucide.createIcons();
+    const esc = (value) => value.replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
+
+    function renderFindings(findings) {
+      const container = document.querySelector('#findings');
+      container.innerHTML = findings.map((finding) => `<div class="border border-${finding.tone}/30 bg-${finding.tone}/5 p-3"><div class="flex items-start gap-3"><i data-lucide="${finding.icon}" class="mt-0.5 h-4 w-4 text-${finding.tone}"></i><div><p class="text-xs font-semibold text-${finding.tone}">${finding.title}</p><p class="mt-1 text-xs leading-5 text-slate-400">${finding.body}</p><p class="mt-2 font-mono text-[10px] text-slate-600">${finding.meta}</p></div></div></div>`).join('');
+      icons();
+      document.querySelector('#scan-count').textContent = `${findings.length} detected`;
+      document.querySelector('#confidence').textContent = findings.length ? '84%' : '100%';
+      document.querySelector('#confidence-bar').style.width = findings.length ? '84%' : '100%';
+    }
+
+    function runScan() {
+      const base = document.querySelector('#base-code').value;
+      const proposed = document.querySelector('#proposed-code').value;
+      const findings = [];
+      if (base.includes('create_user(name: str, email: str)') && proposed.includes('create_user(name: str, email: str, role: str)')) findings.push({ tone: 'coral', icon: 'triangle-alert', title: 'Breaking parameter change', body: 'create_user now requires role. Existing callers will fail without a default value.', meta: 'main.py:1 / API compatibility'});
+      if (/API_KEY\s*=\s*["'][^"']+["']/.test(proposed)) findings.push({ tone: 'coral', icon: 'key-round', title: 'Hard-coded secret pattern', body: 'A credential-like literal is assigned in the proposed source. Value redacted.', meta: 'main.py:9 / security rules'});
+      if (!findings.length) findings.push({ tone: 'lime', icon: 'circle-check', title: 'No high-risk findings', body: 'The current snippets do not match the built-in breaking-change or secret patterns.', meta: 'browser scan / advisory result'});
+      renderFindings(findings);
+    }
+
+    function setTab(name) {
+      document.querySelectorAll('.tab').forEach((button) => button.classList.toggle('tab-active', button.dataset.tab === name));
+      document.querySelectorAll('.tab-panel').forEach((panel) => panel.classList.toggle('hidden', panel.id !== name));
+    }
+
+    document.querySelectorAll('.tab').forEach((button) => button.addEventListener('click', () => setTab(button.dataset.tab)));
+    document.querySelector('#load-demo').addEventListener('click', () => { document.querySelector('#base-code').value = demoBase; document.querySelector('#proposed-code').value = demoProposed; runScan(); });
+    document.querySelector('#run-scan').addEventListener('click', runScan);
+    document.querySelector('#check-license').addEventListener('click', () => {
+      const name = esc(document.querySelector('#package-name').value.trim() || 'unnamed-package');
+      const license = document.querySelector('#package-license').value;
+      const allowed = ['MIT', 'Apache-2.0', 'BSD-3-Clause', 'MPL-2.0'].includes(license);
+      const unknown = license === 'UNKNOWN';
+      const tone = allowed ? 'lime' : unknown ? 'sky' : 'coral';
+      const label = allowed ? 'PERMITTED' : unknown ? 'REVIEW NEEDED' : 'RESTRICTED';
+      const copy = allowed ? 'This license is allowed by the default permissive policy.' : unknown ? 'No policy match. Confirm the license before merging.' : 'This license requires explicit maintainer and legal review.';
+      document.querySelector('#license-result').innerHTML = `<div class="border border-${tone}/40 bg-${tone}/5 p-5"><div class="flex items-center gap-3"><div class="grid h-10 w-10 place-items-center bg-${tone} text-ink"><i data-lucide="${allowed ? 'check' : unknown ? 'help-circle' : 'x'}" class="h-5 w-5"></i></div><div><p class="font-mono text-xs font-bold tracking-[.15em] text-${tone}">${label}</p><p class="mt-1 font-semibold">${name} / ${license}</p></div></div><p class="mt-5 text-sm leading-6 text-slate-400">${copy}</p></div>`;
+      icons();
+    });
+
+    document.querySelector('#demo-toggle').addEventListener('change', (event) => { document.querySelector('#ollama-state').innerHTML = event.target.checked ? '<span class="h-2 w-2 rounded-full bg-lime"></span>demo mode' : '<span class="h-2 w-2 rounded-full bg-sky"></span>ollama target'; });
+    document.querySelector('#generate-summary').addEventListener('click', async () => {
+      const output = document.querySelector('#ai-output');
+      const demo = document.querySelector('#demo-toggle').checked;
+      output.innerHTML = '<span class="text-slate-600">Preparing maintainer brief...</span>';
+      if (demo) { await new Promise((resolve) => setTimeout(resolve, 450)); output.innerHTML = '<p class="mb-4 font-semibold text-lime">Recommendation: request changes</p><ol class="list-decimal space-y-2 pl-5"><li>Make <code class="font-mono text-sky">role</code> optional or provide a backward-compatible default.</li><li>Remove the hard-coded credential and rotate it if it was real.</li><li>Add a regression test for existing <code class="font-mono text-sky">create_user</code> callers.</li></ol><p class="mt-5 border-t border-line pt-4 font-mono text-[10px] uppercase tracking-[.12em] text-slate-600">demo response / no source uploaded</p>'; return; }
+      try {
+        const response = await fetch(document.querySelector('#ollama-endpoint').value, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ model: document.querySelector('#model-select').value, prompt: 'Summarize the RepoGuardian findings for a maintainer. Keep it concise.', stream: false }) });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        output.textContent = data.response || 'The local model returned an empty response.';
+      } catch (error) { output.innerHTML = `<p class="font-semibold text-coral">Ollama is unavailable.</p><p class="mt-2 text-sm leading-6 text-slate-400">Start Ollama at localhost:11434, or enable Demo mode to use the offline response.</p><p class="mt-4 font-mono text-[10px] text-slate-600">${esc(error.message)}</p>`; }
+    });
+
+    document.querySelector('#license-result').innerHTML = '<div class="border border-line bg-ink p-5 text-sm text-slate-500">Enter a package and run a check to see its policy status.</div>';
+    runScan();
+    icons();
+  </script>
+</body>
+</html>

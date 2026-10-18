@@ -1,0 +1,4 @@
+click>=8.1,<9
+pydantic>=2.0,<3
+rich>=13.0,<14
+requests>=2.31,<3
